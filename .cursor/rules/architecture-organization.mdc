@@ -1,0 +1,13 @@
+---
+description: Keep project code organized, scoped, and easy to change
+alwaysApply: true
+---
+
+# Architecture And Code Organization
+
+- Follow the active scaffold only; do not add app features, infrastructure, or abstractions before the scaffold asks for them.
+- Keep files small and focused. If a file starts mixing unrelated responsibilities, extract a service, hook, helper, DTO, or component that matches the existing folder style.
+- Separate UI rendering from business logic, network calls, persistence, validation, and data shaping.
+- Prefer readable composition over large all-in-one modules. Screens/controllers should orchestrate; services/helpers should own logic.
+- Keep shared behavior in a single place when it is reused by more than one feature. Avoid premature shared abstractions for one-off scaffold code.
+- Add tests near the behavior being introduced, scaled to the scaffold risk and done criteria.

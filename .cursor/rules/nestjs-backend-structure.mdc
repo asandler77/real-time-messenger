@@ -1,0 +1,13 @@
+---
+description: NestJS backend module, controller, service, DTO, and test boundaries
+globs: apps/backend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# NestJS Backend Structure
+
+- Keep NestJS modules organized by feature. Place controllers, services, DTOs, and feature tests together in the feature area when it fits the scaffold.
+- Controllers should handle HTTP routing and request/response boundaries only. Put validation, authorization decisions, and business behavior in services or focused helpers.
+- Use DTOs for request and response shapes that cross module or HTTP boundaries. Keep persistence or transport details out of controllers.
+- Avoid large services. Extract focused providers/helpers when a service grows multiple unrelated responsibilities.
+- Add unit tests for service behavior and integration-style tests for HTTP endpoints when a scaffold adds or changes backend behavior.

@@ -1,0 +1,14 @@
+---
+description: React Native UI structure, state boundaries, and design tokens
+globs: apps/mobile/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# React Native UI Structure
+
+- Keep screens as thin orchestration layers. Move reusable UI into components, reusable stateful behavior into hooks, and API or storage work into services/helpers.
+- Use typed props for components and hooks. Prefer explicit return types for exported helpers and services.
+- Keep component files focused: one primary component per file, with local styles and small private helpers only when they support that component.
+- Introduce or extend a shared theme/tokens file before repeating colors, spacing, radii, font sizes, or sizing values across multiple files.
+- Use tokens for shared UI decisions, for example `space.md`, `radius.lg`, `fontSize.xl`, or `color.background`, instead of scattering hardcoded values.
+- Build components so they are testable without an emulator: pass dependencies through props or small services when practical, and keep side effects outside presentation components.
