@@ -8,6 +8,7 @@ This file collects follow-up comments and improvement ideas to revisit in the ne
 
 - Review the current login and chat screens after the MVP flow is stable.
 - Improve spacing, typography, colors, input states, buttons, and message layout.
+- Improve message sender titles: current user's messages should show `You`, and messages from other users should show the sender's username.
 - Introduce or extend shared UI tokens/theme values before repeating hardcoded UI values.
 - Keep this as a polish pass: do not add new app features while improving UI.
 

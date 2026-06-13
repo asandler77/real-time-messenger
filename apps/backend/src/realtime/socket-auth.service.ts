@@ -1,9 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable } from '@nestjs/common';
 import type { Socket } from 'socket.io';
+import { AuthService } from '../auth/auth.service';
 import type {
   AuthenticatedSocketData,
-  JwtSocketPayload,
   SocketUser,
 } from './socket-auth.types';
 
@@ -13,25 +12,16 @@ type SocketWithAuthData = Socket & {
 
 @Injectable()
 export class SocketAuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly authService: AuthService) {}
 
   validateClient(client: Socket): SocketUser {
     const token = this.extractToken(client.handshake);
 
-    if (!token) {
-      throw new UnauthorizedException('Missing authentication token');
-    }
+    const user = this.authService.validateAccessToken(token);
 
-    try {
-      const payload = this.jwtService.verify<JwtSocketPayload>(token);
-      const user = this.createSocketUser(payload);
+    (client as SocketWithAuthData).data.user = user;
 
-      (client as SocketWithAuthData).data.user = user;
-
-      return user;
-    } catch {
-      throw new UnauthorizedException('Invalid authentication token');
-    }
+    return user;
   }
 
   extractToken(
@@ -50,17 +40,6 @@ export class SocketAuthService {
     }
 
     return this.readSingleValue(handshake.query.token);
-  }
-
-  private createSocketUser(payload: JwtSocketPayload): SocketUser {
-    if (!payload.sub || !payload.username) {
-      throw new UnauthorizedException('Invalid authentication token');
-    }
-
-    return {
-      id: payload.sub,
-      username: payload.username,
-    };
   }
 
   private readSingleValue(value: unknown): string | null {

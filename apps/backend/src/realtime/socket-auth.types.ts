@@ -1,14 +1,8 @@
-export type JwtSocketPayload = {
-  sub: string;
-  username: string;
-  iat?: number;
-  exp?: number;
-};
+import type { AuthenticatedUser, JwtAccessPayload } from '../auth/auth.types';
 
-export type SocketUser = {
-  id: string;
-  username: string;
-};
+export type JwtSocketPayload = JwtAccessPayload;
+
+export type SocketUser = AuthenticatedUser;
 
 export type AuthenticatedSocketData = {
   user?: SocketUser;

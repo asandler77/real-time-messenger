@@ -7,12 +7,12 @@ Project skills under `.cursor/skills/` are local guidance for Cursor discovery. 
 ## How the files relate
 
 - `AGENTS.md` defines repository-wide agent boundaries and safety rules.
+- `docs/STATUS.md` is the single source of truth for current, last completed, and next scaffold status.
 - `docs/` explains the project plan, architecture, and coding standards.
 - `.cursor/rules/` contains Cursor rules that should be followed during implementation and review.
-- `.ai/scaffolds/` defines the ordered learning steps and their done criteria.
+- `.ai/scaffolds/` defines the ordered learning steps and their done criteria, grouped by purpose under `setup/`, `features/`, and `quality/`.
 - `.ai/agents/` defines focused roles for planning, setup, backend, mobile, WebSocket, and review work.
 - `.cursor/skills/` contains discoverable local project skills for scaffold topics.
-- `.ai/skills/` contains legacy bridge references to the matching project skills.
 - `.ai/workflows/` gives repeatable checklists for small implementation work and review.
 
 ## Scaffold Guidance Matrix
@@ -31,5 +31,6 @@ Project skills under `.cursor/skills/` are local guidance for Cursor discovery. 
 | 010 Message Persistence | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/websocket-agent.md` | `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/websocket/SKILL.md` | `.ai/workflows/review-code.md` |
 | 011 Security Basics | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/websocket-agent.md`, `.ai/agents/react-native-agent.md` | `.cursor/skills/jwt-auth/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/nestjs/SKILL.md` | `.ai/workflows/review-code.md` |
 | 012 Basic Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/code-review-agent.md` | Use the skill(s) for the code area being tested | `.ai/workflows/review-code.md` |
+| 013 Push Notifications | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/websocket-agent.md` | `.cursor/skills/push-notifications/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md` | `.ai/workflows/review-code.md` |
 
-For implementation, start with `.ai/workflows/create-small-feature.md`. Before advancing to the next scaffold, use `.ai/workflows/review-code.md` with `.ai/agents/code-review-agent.md`.
+For implementation, start with `.ai/workflows/create-small-feature.md`. Before advancing to the next scaffold, use `.ai/workflows/review-code.md` with `.ai/agents/code-review-agent.md`, then update `docs/STATUS.md`.

@@ -1,18 +1,32 @@
 # Scaffold 002: Create Backend Skeleton
 
-Purpose: later create the first backend project structure.
+Type: feature
 
-Do not run this scaffold until Scaffold 001 is complete and the user asks to continue.
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Create the first backend project structure.
+
+## Prerequisites
+
+- Scaffold 001 (Create Workspace) is complete.
+- The user has asked to continue.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`
-- Useful skill: `.cursor/skills/nestjs/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
 
-Goal: create a minimal backend that can start locally and answer one simple HTTP request.
+## Skills
 
-Done when:
+- `.cursor/skills/nestjs/SKILL.md`
+
+## Goal
+
+Create a minimal backend that can start locally and answer one simple HTTP request.
+
+## Done when
 
 - The backend project structure exists.
 - The backend has a minimal health or hello endpoint.
@@ -34,4 +48,13 @@ Example expected response:
 { "message": "Backend is running" }
 ```
 
-Do not add login, JWT, database, WebSocket, message sending, message receiving, Docker, Redis, or mobile UI in this scaffold.
+## Minimal testing
+
+- Run the starter backend tests.
+- Confirm the health or hello endpoint with a unit test.
+- Confirm the health or hello endpoint with a minimal HTTP integration test.
+
+## Do not
+
+- Do not run this scaffold before Scaffold 001 is complete.
+- Do not add login, JWT, database, WebSocket, message sending, message receiving, Docker, Redis, or mobile UI.

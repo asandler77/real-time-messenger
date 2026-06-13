@@ -8,9 +8,19 @@ export type LoginCredentials = {
 type LoginResponse = {
   accessToken: string;
   tokenType: 'Bearer';
+  userId: string;
+  username: string;
 };
 
-export async function login(credentials: LoginCredentials): Promise<string> {
+export type LoginResult = {
+  accessToken: string;
+  userId: string;
+  username: string;
+};
+
+export async function login(
+  credentials: LoginCredentials,
+): Promise<LoginResult> {
   let response: Response;
 
   try {
@@ -35,9 +45,13 @@ export async function login(credentials: LoginCredentials): Promise<string> {
 
   const data = (await response.json()) as LoginResponse;
 
-  if (!data.accessToken) {
+  if (!data.accessToken || !data.userId || !data.username) {
     throw new Error('Login failed. Try again.');
   }
 
-  return data.accessToken;
+  return {
+    accessToken: data.accessToken,
+    userId: data.userId,
+    username: data.username,
+  };
 }

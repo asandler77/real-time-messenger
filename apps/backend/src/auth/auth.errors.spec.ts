@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import type { AddressInfo } from 'net';
 import { AppModule } from '../app.module';
 
-describe('Auth error responses', () => {
+describe('Auth responses', () => {
   let app: INestApplication;
   let serverUrl: string;
 
@@ -22,6 +22,32 @@ describe('Auth error responses', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it.each([
+    {
+      credentials: { username: 'demo', password: 'demo' },
+      expectedUser: { userId: 'demo-user', username: 'demo' },
+    },
+    {
+      credentials: { username: 'demo1', password: 'demo1' },
+      expectedUser: { userId: 'demo1-user', username: 'demo1' },
+    },
+  ])('logs in $credentials.username', async ({ credentials, expectedUser }) => {
+    const response = await fetch(`${serverUrl}/auth/login`, {
+      body: JSON.stringify(credentials),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    await expect(response.json()).resolves.toEqual({
+      accessToken: expect.any(String),
+      tokenType: 'Bearer',
+      ...expectedUser,
+    });
+    expect(response.status).toBe(201);
   });
 
   it('returns a consistent error for invalid login credentials', async () => {

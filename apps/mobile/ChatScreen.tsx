@@ -21,10 +21,15 @@ const socketStatusLabel = {
 
 type ChatScreenProps = {
   accessToken: string;
-  currentUserId?: string;
+  currentUserId: string;
+  currentUsername: string;
 };
 
-function ChatScreen({accessToken, currentUserId = 'demo-user'}: ChatScreenProps) {
+function ChatScreen({
+  accessToken,
+  currentUserId,
+  currentUsername,
+}: ChatScreenProps) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<ScrollView>(null);
   const {error, messages, sendMessage, status} = useChatSocket(accessToken);
@@ -58,6 +63,7 @@ function ChatScreen({accessToken, currentUserId = 'demo-user'}: ChatScreenProps)
         {messages.map(item => (
           <MessageBubble
             key={item.id}
+            currentUsername={currentUsername}
             message={item}
             isOwnMessage={item.userId === currentUserId}
           />
@@ -91,12 +97,16 @@ function ChatScreen({accessToken, currentUserId = 'demo-user'}: ChatScreenProps)
 }
 
 function MessageBubble({
+  currentUsername,
   isOwnMessage,
   message,
 }: {
+  currentUsername: string;
   isOwnMessage: boolean;
   message: ChatMessage;
 }) {
+  const senderLabel = isOwnMessage ? currentUsername : message.username;
+
   return (
     <View
       style={[
@@ -104,9 +114,7 @@ function MessageBubble({
         isOwnMessage ? styles.ownMessage : styles.otherMessage,
       ]}
       testID={isOwnMessage ? 'own-message' : 'other-message'}>
-      <Text style={styles.messageSender}>
-        {isOwnMessage ? 'You' : message.username}
-      </Text>
+      <Text style={styles.messageSender}>{senderLabel}</Text>
       <Text style={styles.messageText}>{message.text}</Text>
       <Text style={styles.messageTimestamp} testID="message-timestamp">
         {new Date(message.timestamp).toLocaleTimeString()}

@@ -1,6 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Socket } from 'socket.io';
+import { AuthService } from '../auth/auth.service';
 import { jwtModuleOptions } from '../auth/jwt.config';
 import { SocketAuthService } from './socket-auth.service';
 
@@ -17,7 +18,8 @@ function createClient(token?: string): Socket {
 
 describe('SocketAuthService', () => {
   const jwtService = new JwtService(jwtModuleOptions);
-  const service = new SocketAuthService(jwtService);
+  const authService = new AuthService(jwtService);
+  const service = new SocketAuthService(authService);
 
   it('extracts tokens from Socket.IO auth payloads', () => {
     expect(

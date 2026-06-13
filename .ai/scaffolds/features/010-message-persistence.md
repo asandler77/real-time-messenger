@@ -1,12 +1,23 @@
 # Scaffold 010: Message Persistence
 
-Purpose: save broadcast chat messages so the MVP keeps message history after restart.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Save broadcast chat messages so the MVP keeps message history after restart.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/websocket-agent.md`
-- Useful skills: `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/websocket/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/nestjs/SKILL.md`
+- `.cursor/skills/react-native/SKILL.md`
+- `.cursor/skills/websocket/SKILL.md`
 
 ## Prerequisites
 

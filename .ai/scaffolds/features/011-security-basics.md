@@ -1,12 +1,23 @@
 # Scaffold 011: Security Basics
 
-Purpose: add basic security rules for the MVP broadcast chat without building advanced auth features.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add basic security rules for the MVP broadcast chat without building advanced auth features.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/websocket-agent.md`, `.ai/agents/react-native-agent.md`
-- Useful skills: `.cursor/skills/jwt-auth/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/jwt-auth/SKILL.md`
+- `.cursor/skills/websocket/SKILL.md`
+- `.cursor/skills/nestjs/SKILL.md`
 
 ## Prerequisites
 

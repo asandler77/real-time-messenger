@@ -1,12 +1,21 @@
 # Scaffold 012: Basic Testing
 
-Purpose: add minimal tests for the main MVP broadcast chat flow.
+Type: testing
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add minimal tests for the main MVP broadcast chat flow.
 
 ## Recommended agents
 
 - Plan/review: `.ai/agents/task-planner-agent.md`, `.ai/agents/code-review-agent.md`
-- Useful skills: use the `.cursor/skills/<skill-name>/SKILL.md` file(s) for the code area being tested.
 - Review: `.ai/workflows/review-code.md`
+
+## Skills
+
+- Use the `.cursor/skills/<skill-name>/SKILL.md` file(s) for the code area being tested.
 
 ## Prerequisites
 

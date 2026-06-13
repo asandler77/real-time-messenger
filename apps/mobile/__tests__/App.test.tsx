@@ -8,10 +8,12 @@ import type {ReactTestInstance} from 'react-test-renderer';
 import App from '../App';
 import ChatScreen from '../ChatScreen';
 import LoginScreen from '../LoginScreen';
+import {clearAccessToken, getAccessToken} from '../authSessionStorage';
 import {useChatSocket} from '../useChatSocket';
 
 jest.mock('../useChatSocket', () => ({
   useChatSocket: jest.fn(() => ({
+    clientId: '',
     error: '',
     messages: [],
     sendMessage: jest.fn(),
@@ -33,6 +35,8 @@ function mockLoginSuccess(accessToken = 'demo-jwt') {
     json: jest.fn().mockResolvedValueOnce({
       accessToken,
       tokenType: 'Bearer',
+      userId: 'demo-user',
+      username: 'demo',
     }),
   });
 }
@@ -46,8 +50,10 @@ function mockLoginFailure() {
 }
 
 beforeEach(() => {
+  clearAccessToken();
   fetchMock.mockReset();
   (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: '',
     error: '',
     messages: [],
     sendMessage: jest.fn(),
@@ -100,12 +106,14 @@ test('shows loading while login request is pending', async () => {
       json: jest.fn().mockResolvedValueOnce({
         accessToken: 'demo-jwt',
         tokenType: 'Bearer',
+        userId: 'demo-user',
+        username: 'demo',
       }),
     });
   });
 });
 
-test('submits demo credentials, saves token in state, and shows chat', async () => {
+test('submits demo credentials, stores token, and shows chat', async () => {
   mockLoginSuccess();
 
   let renderer: ReactTestRenderer.ReactTestRenderer;
@@ -136,6 +144,7 @@ test('submits demo credentials, saves token in state, and shows chat', async () 
   );
   expect(hasText(renderer!.root, 'Real-time Messenger')).toBe(true);
   expect(renderer!.root.findByProps({testID: 'socket-status'})).toBeTruthy();
+  expect(getAccessToken()).toBe('demo-jwt');
   expect(useChatSocket).toHaveBeenLastCalledWith('demo-jwt');
 });
 
@@ -188,6 +197,7 @@ test('shows user-facing error when backend is unavailable', async () => {
 test('sends a non-empty chat message', async () => {
   const sendMessage = jest.fn().mockResolvedValueOnce(true);
   (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: 'socket-1',
     error: '',
     messages: [],
     sendMessage,
@@ -197,7 +207,13 @@ test('sends a non-empty chat message', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(() => {
-    renderer = ReactTestRenderer.create(<ChatScreen accessToken="demo-jwt" />);
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
   });
 
   await ReactTestRenderer.act(() => {
@@ -219,6 +235,7 @@ test('sends a non-empty chat message', async () => {
 test('does not send empty chat messages', async () => {
   const sendMessage = jest.fn();
   (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: 'socket-1',
     error: '',
     messages: [],
     sendMessage,
@@ -228,7 +245,13 @@ test('does not send empty chat messages', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(() => {
-    renderer = ReactTestRenderer.create(<ChatScreen accessToken="demo-jwt" />);
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
   });
 
   expect(renderer!.root.findByProps({testID: 'send-button'}).props.disabled).toBe(
@@ -239,6 +262,7 @@ test('does not send empty chat messages', async () => {
 
 test('disables sending while socket is disconnected', async () => {
   (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: '',
     error: '',
     messages: [],
     sendMessage: jest.fn(),
@@ -248,7 +272,13 @@ test('disables sending while socket is disconnected', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(() => {
-    renderer = ReactTestRenderer.create(<ChatScreen accessToken="demo-jwt" />);
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
   });
 
   await ReactTestRenderer.act(() => {
@@ -262,23 +292,54 @@ test('disables sending while socket is disconnected', async () => {
   );
 });
 
-test('renders incoming messages with sender and own-message styling', async () => {
+test('renders loaded history and disconnected chat errors', async () => {
   (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: '',
+    error: 'Chat is disconnected. Reconnect before sending.',
+    messages: [
+      {
+        clientId: 'socket-1',
+        id: 'message-1',
+        text: 'Persisted history',
+        timestamp: '2026-06-12T12:00:00.000Z',
+        userId: 'demo-user',
+        username: 'demo',
+      },
+    ],
+    sendMessage: jest.fn(),
+    status: 'disconnected',
+  });
+
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
+  });
+
+  expect(hasText(renderer!.root, 'Persisted history')).toBe(true);
+  expect(
+    renderer!.root.findByProps({testID: 'chat-error'}).props.children,
+  ).toBe('Chat is disconnected. Reconnect before sending.');
+});
+
+test('renders current user messages on the right with the username label', async () => {
+  (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: 'socket-2',
     error: '',
     messages: [
       {
+        clientId: 'socket-1',
         id: 'message-1',
         text: 'Mine',
         timestamp: '2026-06-12T12:00:00.000Z',
         userId: 'demo-user',
         username: 'demo',
-      },
-      {
-        id: 'message-2',
-        text: 'Hello from other',
-        timestamp: '2026-06-12T12:01:00.000Z',
-        userId: 'other-user',
-        username: 'Other',
       },
     ],
     sendMessage: jest.fn(),
@@ -288,19 +349,59 @@ test('renders incoming messages with sender and own-message styling', async () =
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(() => {
-    renderer = ReactTestRenderer.create(<ChatScreen accessToken="demo-jwt" />);
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
   });
 
-  expect(hasText(renderer!.root, 'You')).toBe(true);
+  expect(hasText(renderer!.root, 'You')).toBe(false);
   expect(hasText(renderer!.root, 'Mine')).toBe(true);
-  expect(hasText(renderer!.root, 'Other')).toBe(true);
-  expect(hasText(renderer!.root, 'Hello from other')).toBe(true);
-  expect(
-    renderer!.root.findAllByProps({testID: 'message-timestamp'}).length,
-  ).toBeGreaterThanOrEqual(2);
+  expect(hasText(renderer!.root, 'demo')).toBe(true);
   expect(
     renderer!.root.findAllByProps({testID: 'own-message'}).length,
   ).toBeGreaterThanOrEqual(1);
+  expect(
+    renderer!.root.findAllByProps({testID: 'other-message'}).length,
+  ).toBe(0);
+});
+
+test('renders other user messages on the left with the sender username', async () => {
+  (useChatSocket as jest.Mock).mockReturnValue({
+    clientId: 'socket-1',
+    error: '',
+    messages: [
+      {
+        clientId: 'socket-2',
+        id: 'message-2',
+        text: 'Hello from other',
+        timestamp: '2026-06-12T12:01:00.000Z',
+        userId: 'demo1-user',
+        username: 'demo1',
+      },
+    ],
+    sendMessage: jest.fn(),
+    status: 'connected',
+  });
+
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(
+      <ChatScreen
+        accessToken="demo-jwt"
+        currentUserId="demo-user"
+        currentUsername="demo"
+      />,
+    );
+  });
+
+  expect(hasText(renderer!.root, 'demo1')).toBe(true);
+  expect(hasText(renderer!.root, 'Hello from other')).toBe(true);
+  expect(renderer!.root.findAllByProps({testID: 'own-message'}).length).toBe(0);
   expect(
     renderer!.root.findAllByProps({testID: 'other-message'}).length,
   ).toBeGreaterThanOrEqual(1);

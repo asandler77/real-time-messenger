@@ -14,12 +14,16 @@ test('login posts credentials and returns the access token', async () => {
     json: jest.fn().mockResolvedValueOnce({
       accessToken: 'demo-jwt',
       tokenType: 'Bearer',
+      userId: 'demo-user',
+      username: 'demo',
     }),
   });
 
-  await expect(login({username: 'demo', password: 'demo'})).resolves.toBe(
-    'demo-jwt',
-  );
+  await expect(login({username: 'demo', password: 'demo'})).resolves.toEqual({
+    accessToken: 'demo-jwt',
+    userId: 'demo-user',
+    username: 'demo',
+  });
 
   expect(fetchMock).toHaveBeenCalledWith(
     'http://10.0.2.2:3000/auth/login',

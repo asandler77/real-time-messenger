@@ -10,15 +10,16 @@ Use this project skill after confirming the active scaffold. It is local project
 ## Use With
 
 - `.ai/agents/project-setup-agent.md`
-- `.ai/scaffolds/001-create-workspace.md`
+- `.ai/scaffolds/setup/001-create-workspace.md`
 - `.ai/workflows/create-small-feature.md`
 
 ## Do
 
 - Keep guidance files concise and linked instead of duplicating the same rule in many places.
 - Put new work in the folder owned by the active scaffold.
+- Group scaffold files by purpose under `.ai/scaffolds/setup/`, `.ai/scaffolds/features/`, or `.ai/scaffolds/quality/`.
 - Use `.cursor/skills/<skill-name>/SKILL.md` for discoverable project skills.
-- Keep `.ai/skills/*.md` as legacy bridge references when older scaffold guidance points there.
+- Keep `.cursor/skills/**/SKILL.md` as the only project skill source; do not recreate legacy bridge skill files.
 - Keep generated output and dependencies out of planning and review unless directly relevant.
 
 ## Quality Checks

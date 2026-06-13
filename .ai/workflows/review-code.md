@@ -12,4 +12,4 @@ Use this checklist before marking a scaffold step complete or moving to the next
 - Scope: confirm the change does not add future scaffold features, infrastructure, packages, or abstractions early.
 - Test: verify the scaffold's minimal tests ran, or record why tests are not needed for docs-only changes.
 - Findings: lead with bugs, regressions, scaffold-boundary violations, and missing tests.
-- Advance: update `docs/development-plan.md` only after the scaffold is clearly implemented and reviewed.
+- Advance: update `docs/STATUS.md` only after the scaffold is clearly implemented and reviewed.

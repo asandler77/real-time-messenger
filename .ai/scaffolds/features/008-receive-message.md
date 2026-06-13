@@ -1,12 +1,22 @@
 # Scaffold 008: Receive Message
 
-Purpose: add the ability to receive chat messages from other users in real-time.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add the ability to receive chat messages from other users in real time.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/websocket-agent.md`, `.ai/agents/react-native-agent.md`
-- Useful skills: `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/react-native/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/websocket/SKILL.md`
+- `.cursor/skills/react-native/SKILL.md`
 
 ## Prerequisites
 

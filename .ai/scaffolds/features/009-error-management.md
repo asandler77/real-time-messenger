@@ -1,12 +1,23 @@
 # Scaffold 009: Error Management
 
-Purpose: add simple and understandable error handling for the MVP broadcast chat.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add simple and understandable error handling for the MVP broadcast chat.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/websocket-agent.md`
-- Useful skills: `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/websocket/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/nestjs/SKILL.md`
+- `.cursor/skills/react-native/SKILL.md`
+- `.cursor/skills/websocket/SKILL.md`
 
 ## Prerequisites
 

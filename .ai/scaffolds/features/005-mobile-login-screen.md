@@ -1,12 +1,27 @@
 # Scaffold 005: Mobile Login Screen
 
-Purpose: add the first mobile login screen that connects to the backend.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add the first mobile login screen that connects to the backend.
+
+## Prerequisites
+
+- Scaffold 003 (Create Mobile Skeleton) — mobile app exists
+- Scaffold 004 (Backend Login JWT) — backend login endpoint exists
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/react-native-agent.md`
-- Useful skills: `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/react-native/SKILL.md`
+- `.cursor/skills/jwt-auth/SKILL.md`
 
 ## Goal
 

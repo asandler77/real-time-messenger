@@ -1,12 +1,23 @@
 # Scaffold 007: Send Message
 
-Purpose: add the ability to send a chat message through WebSocket.
+Type: feature
+
+Status: see `docs/STATUS.md`
+
+## Purpose
+
+Add the ability to send a chat message through WebSocket.
 
 ## Recommended agents
 
 - Plan/implement: `.ai/agents/task-planner-agent.md`, `.ai/agents/websocket-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/nestjs-backend-agent.md`
-- Useful skills: `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`
 - Review: `.ai/agents/code-review-agent.md` with `.ai/workflows/review-code.md`
+
+## Skills
+
+- `.cursor/skills/websocket/SKILL.md`
+- `.cursor/skills/react-native/SKILL.md`
+- `.cursor/skills/nestjs/SKILL.md`
 
 ## Prerequisites
 

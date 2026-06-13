@@ -5,6 +5,8 @@ import type {MessengerSocket, ChatMessage} from '../socket';
 import {useChatSocket, type ChatSocketState} from '../useChatSocket';
 import {useSocketConnection} from '../useSocketConnection';
 
+const loadEmptyHistory = () => Promise.resolve([]);
+
 function SocketStatus({
   accessToken,
   createSocket,
@@ -23,6 +25,7 @@ function createMockSocket() {
     connect: jest.fn(),
     disconnect: jest.fn(),
     emit: jest.fn(),
+    id: 'socket-1',
     off: jest.fn(),
     on: jest.fn((event: string, handler: (value?: unknown) => void) => {
       handlers.set(event, handler);
@@ -35,13 +38,15 @@ function createMockSocket() {
 function ChatSocketProbe({
   accessToken,
   createSocket,
+  loadHistory = loadEmptyHistory,
   onState,
 }: {
   accessToken: string;
   createSocket: (accessToken: string) => MessengerSocket;
+  loadHistory?: (accessToken: string) => Promise<ChatMessage[]>;
   onState: (state: ChatSocketState) => void;
 }) {
-  const state = useChatSocket(accessToken, createSocket);
+  const state = useChatSocket(accessToken, createSocket, loadHistory);
 
   onState(state);
 
@@ -111,6 +116,7 @@ test('useChatSocket receives incoming messages', async () => {
   });
 
   const message: ChatMessage = {
+    clientId: 'socket-2',
     id: 'message-1',
     text: 'Hello',
     timestamp: '2026-06-12T12:00:00.000Z',
@@ -123,10 +129,55 @@ test('useChatSocket receives incoming messages', async () => {
     handlers.get('message')?.(message);
   });
 
+  expect(latestState?.clientId).toBe('socket-1');
   expect(latestState?.messages).toEqual([message]);
   expect(renderer!.root.findByType(Text).props.children.join('')).toContain(
     'connected:Hello',
   );
+});
+
+test('useChatSocket loads history and appends realtime messages without duplicates', async () => {
+  const {handlers, socket} = createMockSocket();
+  const createSocket = jest.fn(() => socket);
+  const historyMessage: ChatMessage = {
+    clientId: 'socket-1',
+    id: 'message-1',
+    text: 'Persisted',
+    timestamp: '2026-06-12T12:00:00.000Z',
+    userId: 'demo-user',
+    username: 'demo',
+  };
+  const realtimeMessage: ChatMessage = {
+    clientId: 'socket-2',
+    id: 'message-2',
+    text: 'Realtime',
+    timestamp: '2026-06-12T12:01:00.000Z',
+    userId: 'other-user',
+    username: 'Other',
+  };
+  const loadHistory = jest.fn().mockResolvedValue([historyMessage]);
+  let latestState: ChatSocketState | null = null;
+
+  await ReactTestRenderer.act(async () => {
+    ReactTestRenderer.create(
+      <ChatSocketProbe
+        accessToken="demo-jwt"
+        createSocket={createSocket}
+        loadHistory={loadHistory}
+        onState={state => {
+          latestState = state;
+        }}
+      />,
+    );
+  });
+
+  await ReactTestRenderer.act(() => {
+    handlers.get('message')?.(historyMessage);
+    handlers.get('message')?.(realtimeMessage);
+  });
+
+  expect(loadHistory).toHaveBeenCalledWith('demo-jwt');
+  expect(latestState?.messages).toEqual([historyMessage, realtimeMessage]);
 });
 
 test('useChatSocket sends through the connected socket', async () => {
@@ -143,6 +194,7 @@ test('useChatSocket sends through the connected socket', async () => {
       acknowledge({
         ok: true,
         message: {
+          clientId: 'socket-1',
           id: 'message-1',
           text: payload.text,
           timestamp: payload.timestamp,

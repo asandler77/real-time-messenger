@@ -88,6 +88,7 @@ test('registerMessageHandler wires incoming message updates', () => {
   const cleanup = registerMessageHandler(socket, onMessage);
   const message = {
     id: 'message-1',
+    clientId: 'socket-1',
     text: 'Hello',
     timestamp: '2026-06-12T12:00:00.000Z',
     userId: 'demo-user',
@@ -113,6 +114,7 @@ test('sendChatMessage emits trimmed text with a timestamp', async () => {
       acknowledge({
         ok: true,
         message: {
+          clientId: 'socket-1',
           id: 'message-1',
           text: payload.text,
           timestamp: payload.timestamp,

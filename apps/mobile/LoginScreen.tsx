@@ -8,10 +8,10 @@ import {
   View,
 } from 'react-native';
 
-import {login} from './auth';
+import {login, type LoginResult} from './auth';
 
 type LoginScreenProps = {
-  onLogin: (accessToken: string) => void;
+  onLogin: (result: LoginResult) => void;
 };
 
 function LoginScreen({onLogin}: LoginScreenProps) {

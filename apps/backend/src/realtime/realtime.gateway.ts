@@ -10,11 +10,15 @@ import {
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 import {
+  MAX_MESSAGE_TEXT_LENGTH,
   MESSAGE_EVENT,
+  MESSAGE_TEXT_REQUIRED_ERROR,
+  MESSAGE_TEXT_TOO_LONG_ERROR,
   type ChatMessage,
   type SendMessageAck,
   type SendMessagePayload,
 } from './message.types';
+import { MessageHistoryService } from './message-history.service';
 import { SocketAuthService } from './socket-auth.service';
 import type { AuthenticatedSocketData, SocketUser } from './socket-auth.types';
 
@@ -30,7 +34,10 @@ export class RealtimeGateway implements OnGatewayInit {
   @WebSocketServer()
   private server!: Server;
 
-  constructor(private readonly socketAuthService: SocketAuthService) {}
+  constructor(
+    private readonly socketAuthService: SocketAuthService,
+    private readonly messageHistoryService: MessageHistoryService,
+  ) {}
 
   afterInit(server: Server): void {
     server.use((socket, next) => {
@@ -45,43 +52,72 @@ export class RealtimeGateway implements OnGatewayInit {
   }
 
   @SubscribeMessage(MESSAGE_EVENT)
-  handleMessage(
+  async handleMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SendMessagePayload,
-  ): SendMessageAck {
-    const text = this.readMessageText(payload);
+  ): Promise<SendMessageAck> {
+    const validationResult = this.validateMessageText(payload);
 
-    if (!text) {
+    if (!validationResult.ok) {
       return {
         ok: false,
-        error: 'Message text is required.',
+        error: validationResult.error,
       };
     }
 
     const timestamp = this.validateTimestamp(payload);
     const user = this.getSocketUser(client);
     const message: ChatMessage = {
+      clientId: client.id,
       id: `${client.id}-${Date.now()}`,
-      text,
+      text: validationResult.text,
       timestamp,
       userId: user.id,
       username: user.username,
     };
 
-    this.server.emit(MESSAGE_EVENT, message);
+    const persistedMessage =
+      await this.messageHistoryService.saveMessage(message);
+
+    this.server.emit(MESSAGE_EVENT, persistedMessage);
 
     return {
       ok: true,
-      message,
+      message: persistedMessage,
     };
   }
 
-  private readMessageText(payload: SendMessagePayload): string | null {
+  private validateMessageText(
+    payload: SendMessagePayload,
+  ):
+    | {
+        ok: true;
+        text: string;
+      }
+    | {
+        ok: false;
+        error: string;
+      } {
     if (!payload || typeof payload.text !== 'string' || !payload.text.trim()) {
-      return null;
+      return {
+        ok: false,
+        error: MESSAGE_TEXT_REQUIRED_ERROR,
+      };
     }
 
-    return payload.text.trim();
+    const text = payload.text.trim();
+
+    if (text.length > MAX_MESSAGE_TEXT_LENGTH) {
+      return {
+        ok: false,
+        error: MESSAGE_TEXT_TOO_LONG_ERROR,
+      };
+    }
+
+    return {
+      ok: true,
+      text,
+    };
   }
 
   private validateTimestamp(payload: SendMessagePayload): string {

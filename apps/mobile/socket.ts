@@ -13,6 +13,7 @@ export type SocketConnectionStatus =
 export const MESSAGE_EVENT = 'message';
 
 export type ChatMessage = {
+  clientId: string;
   id: string;
   text: string;
   timestamp: string;
@@ -32,7 +33,7 @@ export type SendMessageAck =
 
 export type MessengerSocket = Pick<
   Socket,
-  'connect' | 'connected' | 'disconnect' | 'emit' | 'off' | 'on'
+  'connect' | 'connected' | 'disconnect' | 'emit' | 'id' | 'off' | 'on'
 >;
 
 type SocketStatusHandlers = {

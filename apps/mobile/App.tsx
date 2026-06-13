@@ -4,20 +4,41 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 import ChatScreen from './ChatScreen';
 import LoginScreen from './LoginScreen';
+import {type LoginResult} from './auth';
+import {getAccessToken, saveAccessToken} from './authSessionStorage';
+
+type CurrentUser = {
+  userId: string;
+  username: string;
+};
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const accessTokenRef = useRef<string | null>(getAccessToken());
 
-  if (accessToken) {
+  function handleLogin(result: LoginResult) {
+    saveAccessToken(result.accessToken);
+    accessTokenRef.current = result.accessToken;
+    setCurrentUser({
+      userId: result.userId,
+      username: result.username,
+    });
+  }
+
+  if (currentUser && accessTokenRef.current) {
     return (
       <View style={styles.screen}>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <ChatScreen accessToken={accessToken} />
+        <ChatScreen
+          accessToken={accessTokenRef.current}
+          currentUserId={currentUser.userId}
+          currentUsername={currentUser.username}
+        />
       </View>
     );
   }
@@ -25,7 +46,7 @@ function App() {
   return (
     <View style={styles.screen}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <LoginScreen onLogin={setAccessToken} />
+      <LoginScreen onLogin={handleLogin} />
     </View>
   );
 }

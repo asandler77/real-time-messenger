@@ -2,7 +2,7 @@
 
 A learning workspace for building a real-time messenger step by step.
 
-This workspace now contains a minimal backend skeleton, simple backend login with JWT, and a minimal mobile client skeleton. No database, Docker, Redis, Azure, Kubernetes, WebSocket, or messaging code exists yet.
+See `docs/STATUS.md` for the current scaffold status and what has been implemented. The app is currently an MVP shared broadcast chat with locally persisted recent message history.
 
 ## Backend
 
@@ -52,6 +52,15 @@ Expected response shape:
 }
 ```
 
+Real-time chat currently uses the authenticated WebSocket gateway described in `docs/architecture.md`.
+
+Run backend tests:
+
+```bash
+cd apps/backend
+npm test
+```
+
 ## Mobile
 
 The mobile client lives in `apps/mobile`.
@@ -85,4 +94,11 @@ Run the mobile client on Android from another terminal:
 
 ```bash
 npm run android
+```
+
+Run mobile tests:
+
+```bash
+cd apps/mobile
+npm test
 ```

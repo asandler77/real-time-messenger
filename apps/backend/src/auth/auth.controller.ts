@@ -5,6 +5,8 @@ import { LoginRequestDto } from './dto/login-request.dto';
 type LoginResponse = {
   accessToken: string;
   tokenType: 'Bearer';
+  userId: string;
+  username: string;
 };
 
 @Controller('auth')
