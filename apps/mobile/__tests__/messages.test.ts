@@ -37,15 +37,17 @@ test('loadRecentMessages fetches persisted history with the access token', async
 });
 
 test('loadRecentMessages maps backend and network failures', async () => {
+  const jwt = 'header.payload.signature';
   fetchMock.mockResolvedValueOnce({
     ok: false,
     status: 401,
     json: jest.fn(),
   });
 
-  await expect(loadRecentMessages('bad-jwt')).rejects.toThrow(
-    'Cannot load message history.',
-  );
+  await loadRecentMessages(jwt).catch(error => {
+    expect(error).toEqual(new Error('Cannot load message history.'));
+    expect(error.message).not.toContain(jwt);
+  });
 
   fetchMock.mockRejectedValueOnce(new Error('network down'));
 

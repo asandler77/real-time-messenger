@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { PushModule } from '../push/push.module';
 import {
   MESSAGE_HISTORY_FILE,
   defaultMessageHistoryFile,
@@ -10,7 +11,7 @@ import { RealtimeGateway } from './realtime.gateway';
 import { SocketAuthService } from './socket-auth.service';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, PushModule],
   controllers: [MessagesController],
   providers: [
     {

@@ -15,6 +15,12 @@ Project skills under `.cursor/skills/` are local guidance for Cursor discovery. 
 - `.cursor/skills/` contains discoverable local project skills for scaffold topics.
 - `.ai/workflows/` gives repeatable checklists for small implementation work and review.
 
+## Workflows
+
+- `.ai/workflows/create-small-feature.md` keeps active-scaffold implementation small.
+- `.ai/workflows/review-code.md` reviews changes before advancing scaffolds.
+- `.ai/workflows/run-client-e2e.md` runs the Android client E2E smoke flow with Maestro.
+
 ## Scaffold Guidance Matrix
 
 | Scaffold | Recommended agent(s) | Useful skill(s) | Review workflow |
@@ -32,5 +38,9 @@ Project skills under `.cursor/skills/` are local guidance for Cursor discovery. 
 | 011 Security Basics | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/websocket-agent.md`, `.ai/agents/react-native-agent.md` | `.cursor/skills/jwt-auth/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/nestjs/SKILL.md` | `.ai/workflows/review-code.md` |
 | 012 Basic Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/code-review-agent.md` | Use the skill(s) for the code area being tested | `.ai/workflows/review-code.md` |
 | 013 Push Notifications | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/react-native-agent.md`, `.ai/agents/websocket-agent.md` | `.cursor/skills/push-notifications/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md` | `.ai/workflows/review-code.md` |
+| 014 Backend Endpoint E2E Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/websocket-agent.md` | `.cursor/skills/backend-endpoint-testing/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/websocket/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md` | `.ai/workflows/review-code.md` |
+| 015 Client E2E Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/react-native-agent.md` | `.cursor/skills/client-e2e-testing/SKILL.md`, `.cursor/skills/react-native/SKILL.md` | `.ai/workflows/review-code.md` |
+| 016 Backend Penetration Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/nestjs-backend-agent.md`, `.ai/agents/websocket-agent.md` | `.cursor/skills/backend-penetration-testing/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md`, `.cursor/skills/nestjs/SKILL.md`, `.cursor/skills/websocket/SKILL.md` | `.ai/workflows/review-code.md` |
+| 017 Client Security Testing | `.ai/agents/task-planner-agent.md`, `.ai/agents/react-native-agent.md` | `.cursor/skills/client-security-testing/SKILL.md`, `.cursor/skills/react-native/SKILL.md`, `.cursor/skills/jwt-auth/SKILL.md`, `.cursor/skills/push-notifications/SKILL.md` | `.ai/workflows/review-code.md` |
 
 For implementation, start with `.ai/workflows/create-small-feature.md`. Before advancing to the next scaffold, use `.ai/workflows/review-code.md` with `.ai/agents/code-review-agent.md`, then update `docs/STATUS.md`.

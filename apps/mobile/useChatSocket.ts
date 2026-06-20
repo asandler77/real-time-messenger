@@ -25,6 +25,7 @@ export function useChatSocket(
   accessToken: string,
   createSocket: CreateSocket = createMessengerSocket,
   loadHistory: LoadHistory = loadRecentMessages,
+  historyReloadKey = 0,
 ): ChatSocketState {
   const [status, setStatus] = useState<SocketConnectionStatus>('connecting');
   const [clientId, setClientId] = useState('');
@@ -36,19 +37,6 @@ export function useChatSocket(
     const socket = createSocket(accessToken);
     socketRef.current = socket;
     setStatus('connecting');
-    void loadHistory(accessToken)
-      .then(historyMessages => {
-        if (historyMessages.length === 0) {
-          return;
-        }
-
-        setMessages(currentMessages =>
-          mergeMessages(historyMessages, currentMessages),
-        );
-      })
-      .catch(() => {
-        setError('Cannot load message history.');
-      });
 
     const removeStatusHandlers = registerSocketStatusHandlers(socket, {
       onConnected: () => {
@@ -80,7 +68,23 @@ export function useChatSocket(
       socketRef.current = null;
       setClientId('');
     };
-  }, [accessToken, createSocket, loadHistory]);
+  }, [accessToken, createSocket]);
+
+  useEffect(() => {
+    void loadHistory(accessToken)
+      .then(historyMessages => {
+        if (historyMessages.length === 0) {
+          return;
+        }
+
+        setMessages(currentMessages =>
+          mergeMessages(historyMessages, currentMessages),
+        );
+      })
+      .catch(() => {
+        setError('Cannot load message history.');
+      });
+  }, [accessToken, historyReloadKey, loadHistory]);
 
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {

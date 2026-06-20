@@ -6,36 +6,21 @@ import { join } from 'path';
 import request = require('supertest');
 import { AppModule } from '../app.module';
 import { AuthService } from '../auth/auth.service';
-import { DEVICE_TOKEN_STORE_FILE } from '../push/device-token-store.constants';
-import { MESSAGE_HISTORY_FILE } from './message-history.constants';
-import { MessageHistoryService } from './message-history.service';
-import type { ChatMessage } from './message.types';
+import { DEVICE_TOKEN_STORE_FILE } from './device-token-store.constants';
+import { DeviceTokenStoreService } from './device-token-store.service';
 
-function createMessage(id: string): ChatMessage {
-  return {
-    clientId: 'socket-1',
-    id,
-    text: `Persisted ${id}`,
-    timestamp: '2026-06-12T12:00:00.000Z',
-    userId: 'demo-user',
-    username: 'demo',
-  };
-}
-
-describe('MessagesController', () => {
+describe('PushNotificationsController', () => {
   let app: INestApplication;
   let httpServer: ReturnType<INestApplication['getHttpServer']>;
   let temporaryDirectory: string;
   let accessToken: string;
 
   beforeEach(async () => {
-    temporaryDirectory = await mkdtemp(join(tmpdir(), 'messages-api-'));
+    temporaryDirectory = await mkdtemp(join(tmpdir(), 'push-api-'));
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(MESSAGE_HISTORY_FILE)
-      .useValue(join(temporaryDirectory, 'messages.json'))
       .overrideProvider(DEVICE_TOKEN_STORE_FILE)
       .useValue(join(temporaryDirectory, 'device-tokens.json'))
       .compile();
@@ -53,33 +38,20 @@ describe('MessagesController', () => {
     await rm(temporaryDirectory, { force: true, recursive: true });
   });
 
-  it('loads recent persisted messages with a valid JWT', async () => {
-    const messageHistoryService = app.get(MessageHistoryService);
-    const firstMessage = createMessage('message-1');
-    const secondMessage = createMessage('message-2');
+  it('registers and updates the authenticated Android device token', async () => {
+    const firstResponse = await registerDeviceToken('android-token-1').expect(201);
+    const secondResponse = await registerDeviceToken('android-token-2').expect(201);
 
-    await messageHistoryService.saveMessage(firstMessage);
-    await messageHistoryService.saveMessage(secondMessage);
-
-    const response = await request(httpServer)
-      .get('/messages/recent')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .expect(200);
-
-    expect(response.body).toEqual({
-      messages: [firstMessage, secondMessage],
-    });
-  });
-
-  it('returns an empty messages array for an isolated history fixture', async () => {
-    const response = await request(httpServer)
-      .get('/messages/recent')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .expect(200);
-
-    expect(response.body).toEqual({
-      messages: [],
-    });
+    expect(firstResponse.body).toEqual({ ok: true });
+    expect(secondResponse.body).toEqual({ ok: true });
+    await expect(app.get(DeviceTokenStoreService).listRecords()).resolves.toEqual([
+      expect.objectContaining({
+        deviceToken: 'android-token-2',
+        platform: 'android',
+        userId: 'demo-user',
+        username: 'demo',
+      }),
+    ]);
   });
 
   it.each([
@@ -99,7 +71,9 @@ describe('MessagesController', () => {
       name: 'invalid JWT',
     },
   ])('rejects $name', async ({ authorization, expectedMessage }) => {
-    const response = request(httpServer).get('/messages/recent');
+    const response = request(httpServer)
+      .post('/push/device-token')
+      .send({ deviceToken: 'android-token' });
 
     if (authorization) {
       response.set('Authorization', authorization);
@@ -113,4 +87,25 @@ describe('MessagesController', () => {
       statusCode: 401,
     });
   });
+
+  it('rejects invalid token payloads with a valid JWT', async () => {
+    const response = await request(httpServer)
+      .post('/push/device-token')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ deviceToken: '   ' })
+      .expect(400);
+
+    expect(response.body).toEqual({
+      error: 'Bad Request',
+      message: 'Device token is required.',
+      statusCode: 400,
+    });
+  });
+
+  function registerDeviceToken(deviceToken: string): request.Test {
+    return request(httpServer)
+      .post('/push/device-token')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ deviceToken, platform: 'android' });
+  }
 });

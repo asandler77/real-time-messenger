@@ -5,11 +5,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import type { AuthenticatedUser } from './auth.types';
 
 type RequestWithHeaders = {
   headers: {
     authorization?: unknown;
   };
+  user?: AuthenticatedUser;
 };
 
 @Injectable()
@@ -20,7 +22,7 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithHeaders>();
     const token = this.extractBearerToken(request.headers.authorization);
 
-    this.authService.validateAccessToken(token);
+    request.user = this.authService.validateAccessToken(token);
 
     return true;
   }

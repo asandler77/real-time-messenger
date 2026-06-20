@@ -113,9 +113,7 @@ export function sendChatMessage(
           return;
         }
 
-        reject(
-          new Error(acknowledgement?.error || 'Message could not be sent'),
-        );
+        reject(new Error('Message could not be sent'));
       },
     );
   });

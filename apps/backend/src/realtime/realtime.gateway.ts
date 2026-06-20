@@ -2,6 +2,8 @@ import { Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -9,6 +11,8 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
+import { ConnectedUserTrackerService } from '../push/connected-user-tracker.service';
+import { PushNotificationService } from '../push/push-notification.service';
 import {
   MAX_MESSAGE_TEXT_LENGTH,
   MESSAGE_EVENT,
@@ -28,7 +32,9 @@ import type { AuthenticatedSocketData, SocketUser } from './socket-auth.types';
   },
   transports: ['websocket'],
 })
-export class RealtimeGateway implements OnGatewayInit {
+export class RealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(RealtimeGateway.name);
 
   @WebSocketServer()
@@ -37,6 +43,8 @@ export class RealtimeGateway implements OnGatewayInit {
   constructor(
     private readonly socketAuthService: SocketAuthService,
     private readonly messageHistoryService: MessageHistoryService,
+    private readonly connectedUserTracker: ConnectedUserTrackerService,
+    private readonly pushNotificationService: PushNotificationService,
   ) {}
 
   afterInit(server: Server): void {
@@ -49,6 +57,22 @@ export class RealtimeGateway implements OnGatewayInit {
         next(new Error('Unauthorized'));
       }
     });
+  }
+
+  handleConnection(client: Socket): void {
+    const user = this.getSocketUser(client);
+
+    this.connectedUserTracker.markConnected(user.id, client.id);
+  }
+
+  handleDisconnect(client: Socket): void {
+    const user = this.getOptionalSocketUser(client);
+
+    if (!user) {
+      return;
+    }
+
+    this.connectedUserTracker.markDisconnected(user.id, client.id);
   }
 
   @SubscribeMessage(MESSAGE_EVENT)
@@ -80,6 +104,7 @@ export class RealtimeGateway implements OnGatewayInit {
       await this.messageHistoryService.saveMessage(message);
 
     this.server.emit(MESSAGE_EVENT, persistedMessage);
+    await this.pushNotificationService.dispatchNewMessageAlert(persistedMessage);
 
     return {
       ok: true,
@@ -136,5 +161,11 @@ export class RealtimeGateway implements OnGatewayInit {
     }
 
     return data.user;
+  }
+
+  private getOptionalSocketUser(client: Socket): SocketUser | null {
+    const data = client.data as AuthenticatedSocketData;
+
+    return data.user ?? null;
   }
 }

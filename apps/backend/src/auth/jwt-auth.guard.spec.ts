@@ -2,28 +2,50 @@ import { UnauthorizedException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import type { AuthService } from './auth.service';
+import type { AuthenticatedUser } from './auth.types';
 
-function createContext(authorization?: unknown): ExecutionContext {
+type TestRequest = {
+  headers: {
+    authorization?: unknown;
+  };
+  user?: AuthenticatedUser;
+};
+
+function createContext(authorization?: unknown): {
+  context: ExecutionContext;
+  request: TestRequest;
+} {
+  const request: TestRequest = {
+    headers: {
+      authorization,
+    },
+  };
+
   return {
-    switchToHttp: () => ({
-      getRequest: () => ({
-        headers: {
-          authorization,
-        },
+    context: {
+      switchToHttp: () => ({
+        getRequest: () => request,
       }),
-    }),
-  } as ExecutionContext;
+    } as ExecutionContext,
+    request,
+  };
 }
 
 describe('JwtAuthGuard', () => {
   it('accepts valid bearer tokens', () => {
+    const user = {
+      id: 'demo-user',
+      username: 'demo',
+    };
     const authService = {
-      validateAccessToken: jest.fn(),
+      validateAccessToken: jest.fn(() => user),
     } as unknown as AuthService;
     const guard = new JwtAuthGuard(authService);
+    const { context, request } = createContext('Bearer demo-jwt');
 
-    expect(guard.canActivate(createContext('Bearer demo-jwt'))).toBe(true);
+    expect(guard.canActivate(context)).toBe(true);
     expect(authService.validateAccessToken).toHaveBeenCalledWith('demo-jwt');
+    expect(request.user).toEqual(user);
   });
 
   it('rejects missing bearer tokens', () => {
@@ -32,7 +54,7 @@ describe('JwtAuthGuard', () => {
     } as unknown as AuthService;
     const guard = new JwtAuthGuard(authService);
 
-    expect(() => guard.canActivate(createContext())).toThrow(
+    expect(() => guard.canActivate(createContext().context)).toThrow(
       UnauthorizedException,
     );
     expect(authService.validateAccessToken).not.toHaveBeenCalled();
@@ -46,7 +68,9 @@ describe('JwtAuthGuard', () => {
     } as unknown as AuthService;
     const guard = new JwtAuthGuard(authService);
 
-    expect(() => guard.canActivate(createContext('Bearer bad-jwt'))).toThrow(
+    expect(() =>
+      guard.canActivate(createContext('Bearer bad-jwt').context),
+    ).toThrow(
       UnauthorizedException,
     );
   });

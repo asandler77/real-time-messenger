@@ -23,16 +23,23 @@ type ChatScreenProps = {
   accessToken: string;
   currentUserId: string;
   currentUsername: string;
+  historyReloadKey?: number;
 };
 
 function ChatScreen({
   accessToken,
   currentUserId,
   currentUsername,
+  historyReloadKey = 0,
 }: ChatScreenProps) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<ScrollView>(null);
-  const {error, messages, sendMessage, status} = useChatSocket(accessToken);
+  const {error, messages, sendMessage, status} = useChatSocket(
+    accessToken,
+    undefined,
+    undefined,
+    historyReloadKey,
+  );
   const canSend = status === 'connected' && draft.trim().length > 0;
 
   async function handleSend() {
@@ -44,7 +51,7 @@ function ChatScreen({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="chat-screen">
       <Text style={styles.title}>Real-time Messenger</Text>
       <Text style={styles.status} testID="socket-status">
         {socketStatusLabel[status]}

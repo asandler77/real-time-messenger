@@ -1,11 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import type { AddressInfo } from 'net';
+import request = require('supertest');
 import { AppModule } from '../app.module';
 
 describe('Auth responses', () => {
   let app: INestApplication;
-  let serverUrl: string;
+  let httpServer: ReturnType<INestApplication['getHttpServer']>;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -14,10 +14,7 @@ describe('Auth responses', () => {
 
     app = moduleRef.createNestApplication();
     await app.init();
-    await app.listen(0);
-
-    const address = app.getHttpServer().address() as AddressInfo;
-    serverUrl = `http://127.0.0.1:${address.port}`;
+    httpServer = app.getHttpServer();
   });
 
   afterAll(async () => {
@@ -34,35 +31,27 @@ describe('Auth responses', () => {
       expectedUser: { userId: 'demo1-user', username: 'demo1' },
     },
   ])('logs in $credentials.username', async ({ credentials, expectedUser }) => {
-    const response = await fetch(`${serverUrl}/auth/login`, {
-      body: JSON.stringify(credentials),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-    });
+    const response = await request(httpServer)
+      .post('/auth/login')
+      .send(credentials)
+      .expect(201);
 
-    await expect(response.json()).resolves.toEqual({
+    expect(response.body).toEqual({
       accessToken: expect.any(String),
       tokenType: 'Bearer',
       ...expectedUser,
     });
-    expect(response.status).toBe(201);
   });
 
   it('returns a consistent error for invalid login credentials', async () => {
-    const response = await fetch(`${serverUrl}/auth/login`, {
-      body: JSON.stringify({ username: 'bad', password: 'bad' }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-    });
+    const response = await request(httpServer)
+      .post('/auth/login')
+      .send({ username: 'bad', password: 'bad' })
+      .expect(401);
 
-    await expect(response.json()).resolves.toEqual({
+    expect(response.body).toEqual({
       code: 'INVALID_CREDENTIALS',
       message: 'Invalid username or password.',
     });
-    expect(response.status).toBe(401);
   });
 });

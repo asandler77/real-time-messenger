@@ -39,7 +39,7 @@ function LoginScreen({onLogin}: LoginScreenProps) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="login-screen">
       <Text style={styles.title}>Real-time Messenger</Text>
       <Text style={styles.subtitle}>Sign in with your demo account.</Text>
 

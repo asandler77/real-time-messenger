@@ -23,3 +23,16 @@ test('clears the stored JWT', () => {
 
   expect(getAccessToken()).toBeNull();
 });
+
+test('replaces the stored JWT without retaining the previous value', () => {
+  saveAccessToken('old-jwt');
+  saveAccessToken('new-jwt');
+
+  expect(getAccessToken()).toBe('new-jwt');
+});
+
+test('clearAccessToken is safe when no JWT is stored', () => {
+  clearAccessToken();
+
+  expect(getAccessToken()).toBeNull();
+});

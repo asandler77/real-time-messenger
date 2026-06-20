@@ -160,7 +160,8 @@ test('sendChatMessage rejects empty and disconnected sends', async () => {
   expect(socket.emit).not.toHaveBeenCalled();
 });
 
-test('sendChatMessage rejects failed acknowledgements', async () => {
+test('sendChatMessage maps failed acknowledgements to a safe error', async () => {
+  const jwt = 'header.payload.signature';
   const socket = {
     connected: true,
     emit: jest.fn(
@@ -171,13 +172,14 @@ test('sendChatMessage rejects failed acknowledgements', async () => {
       ) => {
         acknowledge({
           ok: false,
-          error: 'Message text is required.',
+          error: `Unauthorized token ${jwt}`,
         });
       },
     ),
   } as unknown as MessengerSocket;
 
   await expect(sendChatMessage(socket, 'Hello')).rejects.toThrow(
-    'Message text is required.',
+    'Message could not be sent',
   );
+  await expect(sendChatMessage(socket, 'Hello')).rejects.not.toThrow(jwt);
 });

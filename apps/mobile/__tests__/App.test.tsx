@@ -8,7 +8,12 @@ import type {ReactTestInstance} from 'react-test-renderer';
 import App from '../App';
 import ChatScreen from '../ChatScreen';
 import LoginScreen from '../LoginScreen';
-import {clearAccessToken, getAccessToken} from '../authSessionStorage';
+import {
+  clearAccessToken,
+  getAccessToken,
+  saveAccessToken,
+} from '../authSessionStorage';
+import {configurePushNotificationsAfterLogin} from '../pushNotifications';
 import {useChatSocket} from '../useChatSocket';
 
 jest.mock('../useChatSocket', () => ({
@@ -19,6 +24,12 @@ jest.mock('../useChatSocket', () => ({
     sendMessage: jest.fn(),
     status: 'idle',
   })),
+}));
+
+jest.mock('../pushNotifications', () => ({
+  configurePushNotificationsAfterLogin: jest.fn(() =>
+    Promise.resolve({status: 'unavailable'}),
+  ),
 }));
 
 const fetchMock = jest.fn();
@@ -52,6 +63,8 @@ function mockLoginFailure() {
 beforeEach(() => {
   clearAccessToken();
   fetchMock.mockReset();
+  (configurePushNotificationsAfterLogin as jest.Mock).mockClear();
+  (useChatSocket as jest.Mock).mockClear();
   (useChatSocket as jest.Mock).mockReturnValue({
     clientId: '',
     error: '',
@@ -145,7 +158,82 @@ test('submits demo credentials, stores token, and shows chat', async () => {
   expect(hasText(renderer!.root, 'Real-time Messenger')).toBe(true);
   expect(renderer!.root.findByProps({testID: 'socket-status'})).toBeTruthy();
   expect(getAccessToken()).toBe('demo-jwt');
-  expect(useChatSocket).toHaveBeenLastCalledWith('demo-jwt');
+  expect(useChatSocket).toHaveBeenLastCalledWith(
+    'demo-jwt',
+    undefined,
+    undefined,
+    0,
+  );
+  expect(configurePushNotificationsAfterLogin).toHaveBeenCalledWith(
+    'demo-jwt',
+    expect.objectContaining({
+      onNotificationTap: expect.any(Function),
+    }),
+  );
+});
+
+test('does not render the JWT after login', async () => {
+  const jwt = 'header.payload.signature';
+  mockLoginSuccess(jwt);
+
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(<App />);
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await renderer!.root.findByProps({testID: 'login-button'}).props.onPress();
+  });
+
+  expect(JSON.stringify(renderer!.toJSON())).not.toContain(jwt);
+});
+
+test('does not restore chat UI from a stored JWT without user context', async () => {
+  const jwt = 'header.payload.signature';
+  saveAccessToken(jwt);
+
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(<App />);
+  });
+
+  expect(renderer!.root.findByProps({testID: 'login-screen'})).toBeTruthy();
+  expect(renderer!.root.findAllByProps({testID: 'chat-screen'})).toHaveLength(0);
+  expect(useChatSocket).not.toHaveBeenCalled();
+  expect(JSON.stringify(renderer!.toJSON())).not.toContain(jwt);
+});
+
+test('notification taps reload history without exposing notification payload', async () => {
+  const jwt = 'header.payload.signature';
+  mockLoginSuccess(jwt);
+
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(<App />);
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await renderer!.root.findByProps({testID: 'login-button'}).props.onPress();
+  });
+
+  const pushOptions = (configurePushNotificationsAfterLogin as jest.Mock).mock
+    .calls[0][1];
+
+  await ReactTestRenderer.act(() => {
+    pushOptions.onNotificationTap({
+      body: 'Sensitive message preview',
+      jwt,
+    });
+  });
+
+  expect(useChatSocket).toHaveBeenLastCalledWith(jwt, undefined, undefined, 1);
+  expect(JSON.stringify(renderer!.toJSON())).not.toContain(
+    'Sensitive message preview',
+  );
+  expect(JSON.stringify(renderer!.toJSON())).not.toContain(jwt);
 });
 
 test('shows user-facing error for invalid credentials', async () => {

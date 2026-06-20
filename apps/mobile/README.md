@@ -32,6 +32,35 @@ npm run android
 yarn android
 ```
 
+## Client E2E Smoke Tests
+
+The Android client smoke flow uses Maestro and lives in `.maestro/client-smoke.yaml`.
+Maestro is a system-level CLI, so install it separately by following the official
+Maestro installation guide for your environment instead of adding it as an npm
+dependency. Verify the CLI is available with:
+
+```powershell
+maestro --version
+```
+
+Before running the flow, make sure these local services are ready:
+
+- The backend is running on `localhost:3000`; Android emulator traffic reaches it
+  through `http://10.0.2.2:3000`.
+- Metro is running from `apps/mobile`.
+- The Android emulator is running and the app has been installed with
+  `npm run android`.
+
+Run the smoke flow from `apps/mobile`:
+
+```powershell
+npm run e2e:maestro
+```
+
+The flow signs in as the demo user, waits for the chat screen, sends `Maestro
+smoke message`, restarts the app, signs in again, and verifies that the message is
+loaded from recent history.
+
 ### iOS
 
 For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).

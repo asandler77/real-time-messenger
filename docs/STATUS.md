@@ -4,8 +4,8 @@ This file is the single source of truth for scaffold progress. Update it when a 
 
 ## Current Position
 
-- Last completed scaffold: Scaffold 012, Basic Testing
-- Current active scaffold: Scaffold 013, Push Notifications
+- Last completed scaffold: Scaffold 017, Client Security Testing
+- Current active scaffold: Complete
 - Next scaffold after current: none
 
 ## Implemented So Far
@@ -22,10 +22,16 @@ This file is the single source of truth for scaffold progress. Update it when a 
 - Scaffold 010, Message Persistence: broadcast messages are saved to local backend storage and recent history loads into the mobile chat.
 - Scaffold 011, Security Basics: protected MVP HTTP and WebSocket access, backend message validation, and safer mobile JWT storage boundary.
 - Scaffold 012, Basic Testing: final minimal MVP test set for backend auth, protected history, WebSocket messaging, mobile flows, and error states.
+- Scaffold 013, Push Notifications: Android-first push registration boundary, protected backend device token storage, offline recipient dispatch after message persistence, and mobile notification permission/token handling.
+- Scaffold 014, Backend Endpoint E2E Testing: backend HTTP/API and WebSocket E2E coverage for auth login, protected history, push device token registration, JWT rejection, Alice/Bob messaging, and persisted history.
+- Scaffold 015, Client E2E Testing: Android-first Maestro smoke flow for demo login, chat visibility, message sending, and recent history reload after app restart.
+- Scaffold 016, Backend Penetration Testing: safe local backend security coverage for protected HTTP endpoints, JWT tampering/expiry/shape failures, WebSocket auth rejection, malformed message payloads, and push registration abuse boundaries.
+- Scaffold 017, Client Security Testing: focused mobile Jest coverage for token storage cleanup, JWT-safe UI/error boundaries, unauthorized history and push registration handling, socket error sanitization, notification permission denial/unavailable handling, and notification tap privacy.
 
 ## Not Yet In Scope
 
-- Scaffold 013 implementation is not complete.
-- The MVP backlog remains complete; Scaffold 013 is the next post-MVP feature.
+- The MVP scaffold backlog is complete.
+- Future next step: Dockerize the backend for local and CI-friendly startup.
+- Future next step: Configure GitHub CI to run backend and mobile lint, unit, integration, E2E, and security test suites.
 
 The current chat flow is a shared broadcast chat with locally persisted recent message history.

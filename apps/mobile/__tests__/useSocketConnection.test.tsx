@@ -39,14 +39,21 @@ function ChatSocketProbe({
   accessToken,
   createSocket,
   loadHistory = loadEmptyHistory,
+  historyReloadKey = 0,
   onState,
 }: {
   accessToken: string;
   createSocket: (accessToken: string) => MessengerSocket;
+  historyReloadKey?: number;
   loadHistory?: (accessToken: string) => Promise<ChatMessage[]>;
   onState: (state: ChatSocketState) => void;
 }) {
-  const state = useChatSocket(accessToken, createSocket, loadHistory);
+  const state = useChatSocket(
+    accessToken,
+    createSocket,
+    loadHistory,
+    historyReloadKey,
+  );
 
   onState(state);
 
@@ -180,6 +187,68 @@ test('useChatSocket loads history and appends realtime messages without duplicat
   expect(latestState?.messages).toEqual([historyMessage, realtimeMessage]);
 });
 
+test('useChatSocket reloads history without reconnecting after notification taps', async () => {
+  const {socket} = createMockSocket();
+  const createSocket = jest.fn(() => socket);
+  const firstHistoryMessage: ChatMessage = {
+    clientId: 'socket-1',
+    id: 'message-1',
+    text: 'Initial history',
+    timestamp: '2026-06-12T12:00:00.000Z',
+    userId: 'demo-user',
+    username: 'demo',
+  };
+  const nextHistoryMessage: ChatMessage = {
+    clientId: 'socket-2',
+    id: 'message-2',
+    text: 'Reloaded history',
+    timestamp: '2026-06-12T12:01:00.000Z',
+    userId: 'demo1-user',
+    username: 'demo1',
+  };
+  const loadHistory = jest
+    .fn()
+    .mockResolvedValueOnce([firstHistoryMessage])
+    .mockResolvedValueOnce([firstHistoryMessage, nextHistoryMessage]);
+  let latestState: ChatSocketState | null = null;
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ChatSocketProbe
+        accessToken="demo-jwt"
+        createSocket={createSocket}
+        historyReloadKey={0}
+        loadHistory={loadHistory}
+        onState={state => {
+          latestState = state;
+        }}
+      />,
+    );
+  });
+
+  await ReactTestRenderer.act(async () => {
+    renderer!.update(
+      <ChatSocketProbe
+        accessToken="demo-jwt"
+        createSocket={createSocket}
+        historyReloadKey={1}
+        loadHistory={loadHistory}
+        onState={state => {
+          latestState = state;
+        }}
+      />,
+    );
+  });
+
+  expect(loadHistory).toHaveBeenCalledTimes(2);
+  expect(createSocket).toHaveBeenCalledTimes(1);
+  expect(latestState?.messages).toEqual([
+    firstHistoryMessage,
+    nextHistoryMessage,
+  ]);
+});
+
 test('useChatSocket sends through the connected socket', async () => {
   const {handlers, socket} = createMockSocket();
   const createSocket = jest.fn(() => socket);
@@ -274,6 +343,7 @@ test('useChatSocket exposes disconnected and send failure errors', async () => {
 });
 
 test('useChatSocket shows a simple send failure message', async () => {
+  const jwt = 'header.payload.signature';
   const {handlers, socket} = createMockSocket();
   const createSocket = jest.fn(() => socket);
   let latestState: ChatSocketState | null = null;
@@ -286,7 +356,7 @@ test('useChatSocket shows a simple send failure message', async () => {
     ) => {
       acknowledge({
         ok: false,
-        error: 'Message text is required.',
+        error: `Unauthorized token ${jwt}`,
       });
     },
   );
@@ -316,4 +386,5 @@ test('useChatSocket shows a simple send failure message', async () => {
 
   expect(wasSent).toBe(false);
   expect(latestState?.error).toBe('Message could not be sent. Try again.');
+  expect(latestState?.error).not.toContain(jwt);
 });

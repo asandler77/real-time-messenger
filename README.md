@@ -102,3 +102,15 @@ Run mobile tests:
 cd apps/mobile
 npm test
 ```
+
+Run the Android client E2E smoke flow with Maestro after starting the backend,
+Metro, an Android emulator, and installing the app:
+
+```powershell
+cd apps/mobile
+npm run e2e:maestro
+```
+
+The Maestro CLI is a system tool; install it separately and verify
+`maestro --version` before running the flow. See `apps/mobile/README.md` for the
+full local setup notes.

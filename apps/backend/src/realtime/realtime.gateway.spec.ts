@@ -8,8 +8,11 @@ import {
   io as createSocketClient,
   Socket as ClientSocket,
 } from 'socket.io-client';
+import request = require('supertest');
 import { AppModule } from '../app.module';
 import { AuthService } from '../auth/auth.service';
+import { DEVICE_TOKEN_STORE_FILE } from '../push/device-token-store.constants';
+import { PushNotificationService } from '../push/push-notification.service';
 import { MESSAGE_HISTORY_FILE } from './message-history.constants';
 import { MessageHistoryService } from './message-history.service';
 import {
@@ -88,6 +91,8 @@ describe('RealtimeGateway', () => {
     })
       .overrideProvider(MESSAGE_HISTORY_FILE)
       .useValue(join(temporaryDirectory, 'messages.json'))
+      .overrideProvider(DEVICE_TOKEN_STORE_FILE)
+      .useValue(join(temporaryDirectory, 'device-tokens.json'))
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -127,7 +132,7 @@ describe('RealtimeGateway', () => {
     );
   });
 
-  it('broadcasts a valid message from an authenticated client', async () => {
+  it('broadcasts a valid message from authenticated Alice to Bob', async () => {
     const sender = await connectSocket(serverUrl, otherAccessToken);
     const receiver = await connectSocket(serverUrl, accessToken);
     const timestamp = new Date('2026-06-12T12:00:00.000Z').toISOString();
@@ -192,17 +197,55 @@ describe('RealtimeGateway', () => {
       expect.arrayContaining([acknowledgement.message]),
     );
 
-    const response = await fetch(`${serverUrl}/messages/recent`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await request(app.getHttpServer())
+      .get('/messages/recent')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
 
-    await expect(response.json()).resolves.toEqual({
+    expect(response.body).toEqual({
       messages: expect.arrayContaining([acknowledgement.message]),
     });
-    expect(response.status).toBe(200);
 
+    sender.close();
+  });
+
+  it('dispatches push only after a valid message is persisted', async () => {
+    const sender = await connectSocket(serverUrl, accessToken);
+    const messageHistoryService = app.get(MessageHistoryService);
+    const pushNotificationService = app.get(PushNotificationService);
+    const dispatchSpy = jest
+      .spyOn(pushNotificationService, 'dispatchNewMessageAlert')
+      .mockImplementation(async message => {
+        const persistedMessages =
+          await messageHistoryService.listRecentMessages();
+
+        expect(persistedMessages).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: message.id,
+            }),
+          ]),
+        );
+      });
+
+    const acknowledgement = await emitMessage(sender, {
+      text: 'Push after persistence',
+      timestamp: '2026-06-12T12:03:00.000Z',
+    });
+
+    expect(acknowledgement).toEqual({
+      ok: true,
+      message: expect.objectContaining({
+        text: 'Push after persistence',
+        userId: 'demo-user',
+      }),
+    });
+    if (!acknowledgement.ok) {
+      throw new Error('Expected the message to be accepted');
+    }
+    expect(dispatchSpy).toHaveBeenCalledWith(acknowledgement.message);
+
+    dispatchSpy.mockRestore();
     sender.close();
   });
 
@@ -210,6 +253,11 @@ describe('RealtimeGateway', () => {
     const sender = await connectSocket(serverUrl, accessToken);
     const receiver = await connectSocket(serverUrl, otherAccessToken);
     const messageHistoryService = app.get(MessageHistoryService);
+    const pushNotificationService = app.get(PushNotificationService);
+    const dispatchSpy = jest.spyOn(
+      pushNotificationService,
+      'dispatchNewMessageAlert',
+    );
     const messagesBefore = await messageHistoryService.listRecentMessages();
     const noBroadcast = expectNoMessage(receiver);
 
@@ -223,7 +271,9 @@ describe('RealtimeGateway', () => {
     await expect(messageHistoryService.listRecentMessages()).resolves.toHaveLength(
       messagesBefore.length,
     );
+    expect(dispatchSpy).not.toHaveBeenCalled();
 
+    dispatchSpy.mockRestore();
     sender.close();
     receiver.close();
   });

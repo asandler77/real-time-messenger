@@ -58,13 +58,17 @@ test('login maps backend availability errors to user-facing language', async () 
 });
 
 test('login maps unexpected backend errors to a generic message', async () => {
+  const jwt = 'header.payload.signature';
   fetchMock.mockResolvedValueOnce({
     ok: false,
     status: 500,
-    json: jest.fn(),
+    json: jest.fn().mockResolvedValueOnce({
+      message: `backend error for ${jwt}`,
+    }),
   });
 
-  await expect(login({username: 'demo', password: 'demo'})).rejects.toThrow(
-    'Login failed. Try again.',
-  );
+  await login({username: 'demo', password: 'demo'}).catch(error => {
+    expect(error).toEqual(new Error('Login failed. Try again.'));
+    expect(error.message).not.toContain(jwt);
+  });
 });

@@ -9,3 +9,7 @@ export type AuthenticatedUser = {
   id: string;
   username: string;
 };
+
+export type AuthenticatedHttpRequest = {
+  user: AuthenticatedUser;
+};

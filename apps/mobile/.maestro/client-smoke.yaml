@@ -1,0 +1,51 @@
+appId: com.mobile
+---
+- clearState
+- launchApp
+- assertVisible:
+    id: login-screen
+- tapOn:
+    id: username-input
+- inputText: demo
+- tapOn:
+    id: password-input
+- inputText: demo
+- hideKeyboard
+- tapOn:
+    id: login-button
+- extendedWaitUntil:
+    visible:
+      id: chat-screen
+    timeout: 20000
+- extendedWaitUntil:
+    visible: Realtime connected
+    timeout: 20000
+- tapOn:
+    id: message-input
+- inputText: Maestro smoke message
+- hideKeyboard
+- tapOn:
+    id: send-button
+- extendedWaitUntil:
+    visible: Maestro smoke message
+    timeout: 20000
+- stopApp
+- launchApp
+- assertVisible:
+    id: login-screen
+- tapOn:
+    id: username-input
+- inputText: demo
+- tapOn:
+    id: password-input
+- inputText: demo
+- hideKeyboard
+- tapOn:
+    id: login-button
+- extendedWaitUntil:
+    visible:
+      id: chat-screen
+    timeout: 20000
+- extendedWaitUntil:
+    visible: Maestro smoke message
+    timeout: 20000
